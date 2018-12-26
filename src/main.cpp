@@ -4,6 +4,7 @@
 #include <array>
 #include <memory>
 #include <iostream>
+#include <cmath>
 
 #include <SFML/Graphics.hpp>
 
@@ -11,12 +12,18 @@ constexpr int TILE_SIZE = 32;
 constexpr int WINDOW_SIZE = 800;
 constexpr int TILES_PER_LINE = WINDOW_SIZE / TILE_SIZE;
 
+sf::Vector2f velocity;
+sf::Vector2f gravity(0, 2);
+sf::Vector2f drag(.1,0);
+float scale = 100;
+float speed = 2.1f;
+
 std::array<std::string, TILES_PER_LINE> map = {
         "#########################",
         "#.......................#",
         "#.................#.....#",
         "#...........ooooo#......#",
-        "#........o..#####.......#",
+        "#...........#####.......#",
         "#...######..............#",
         "#...######..............#",
         "#..........o............#",
@@ -50,6 +57,15 @@ namespace Pallette {
         const Color player = {200, 50 , 50 }; // red
         const Color coin   = {230, 200, 0  }; // Bright Yellow
 };
+
+template <typename T>
+T sign(T x){
+        if (x > 0) return 1;
+        if (x == 0) return 0;
+        if (x < 0) return -1;
+
+        return 0;
+}
 
 sf::RectangleShape& makePlayer(std::vector<std::unique_ptr<sf::Shape>>& tiles, sf::Vector2f pos, sf::Color col)
 {
@@ -102,7 +118,12 @@ void loadMap(std::array<std::string, TILES_PER_LINE>& map, std::vector<std::uniq
         }
 }
 
+
+
 int main(void){
+        sf::Vector2f acceleration(0, 0);
+
+
         /* INITIALIZATION */
 
         loadMap(map, tiles);
@@ -145,20 +166,76 @@ int main(void){
                 
                 /* UPDATE */ 
 
-                float speed = 500.0f;
+                sf::Vector2f moveDir(0, 1);
 
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-                        player.move(0.0f, -speed * elapsedTime);
+                        //player.move(0.0f, -speed * elapsedTime);
+                        moveDir.y = -1;
                 }
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-                        player.move(0, speed * elapsedTime);
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && false){
+                        //player.move(0, speed * elapsedTime);
+                        moveDir.y = 1;
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
-                        player.move(-speed * elapsedTime, 0);
+                        //player.move(-speed * elapsedTime, 0);
+                        moveDir.x = -1;
                 }
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-                        player.move(speed * elapsedTime, 0);
+                        //player.move(speed * elapsedTime, 0);
+                        moveDir.x = 1;
                 }
+
+                acceleration = (moveDir * speed + gravity) * scale * elapsedTime;
+                sf::Vector2f dragAppl = -sign(velocity.x) * drag * scale * elapsedTime;
+                velocity += acceleration;
+                if (sign(velocity.x) == sign((velocity + dragAppl).x)) velocity += dragAppl;
+                else velocity.x = 0;
+
+                if (fabs(velocity.x) > 500 * elapsedTime) velocity.x = 500 * elapsedTime * sign(velocity.x);
+                if (fabsf(velocity.y) > 500 * elapsedTime) velocity.y = 500 * elapsedTime * sign(velocity.y);
+
+                if (fabs(velocity.x) < 0.001) velocity.x = 0;
+                if (fabs(velocity.y) < 0.001) velocity.y = 0;
+
+                //Collision Detection
+                sf::Vector2f newPos = player.getPosition() + velocity;
+                sf::Vector2f oldPos = player.getPosition();
+
+                //Handle x direction
+                if (moveDir.x > 0){
+                        if (
+                                map[(int)(oldPos.y / TILE_SIZE + 0.1)][(int)(newPos.x / TILE_SIZE + 1)] != '.' ||
+                                map[(int)(oldPos.y / TILE_SIZE + 0.9)][(int)(newPos.x / TILE_SIZE + 1)] != '.'
+                           ){
+                                velocity.x = 0;
+                        }
+                }else{
+                        if(
+                                map[(int)(oldPos.y / TILE_SIZE + 0.1)][(int)(newPos.x / TILE_SIZE)] != '.' ||
+                                map[(int)(oldPos.y / TILE_SIZE + 0.9)][(int)(newPos.x / TILE_SIZE)] != '.'
+                          ){
+                                velocity.x = 0;
+                          }
+                }
+
+                //Handle y direction
+                if (moveDir.y > 0){
+                        if(
+                                map[(int)(newPos.y / TILE_SIZE + 1)][(int)(newPos.x / TILE_SIZE + 0.1)] != '.' ||
+                                map[(int)(newPos.y / TILE_SIZE + 1)][(int)(newPos.x / TILE_SIZE + 0.9)] != '.'
+                          ){
+                                velocity.y = 0;
+                        }
+                } else{
+                        if(
+                                map[(int)(newPos.y / TILE_SIZE)][(int)(newPos.x / TILE_SIZE + 0.1)] != '.' ||
+                                map[(int)(newPos.y / TILE_SIZE)][(int)(newPos.x / TILE_SIZE + 0.9)] != '.'
+                          ){
+                                velocity.y = 0;
+                        }
+                }
+
+                player.move(velocity);
 
                 /*DRAW*/
 
