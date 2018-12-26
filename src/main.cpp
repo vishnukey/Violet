@@ -185,14 +185,20 @@ int main(void){
                         moveDir.x = 1;
                 }
 
+                //physics
                 acceleration = (moveDir * speed + gravity) * scale * elapsedTime;
-                sf::Vector2f dragAppl = -sign(velocity.x) * drag * scale * elapsedTime;
                 velocity += acceleration;
+
+                //drag
+                sf::Vector2f dragAppl = -sign(velocity.x) * drag * scale * elapsedTime;
                 if (sign(velocity.x) == sign((velocity + dragAppl).x)) velocity += dragAppl;
                 else velocity.x = 0;
 
-                if (fabs(velocity.x) > 500 * elapsedTime) velocity.x = 500 * elapsedTime * sign(velocity.x);
-                if (fabsf(velocity.y) > 500 * elapsedTime) velocity.y = 500 * elapsedTime * sign(velocity.y);
+                // Bounds checking & value clamping
+                float maxSpeed = 750;
+
+                if (fabs(velocity.x) > maxSpeed * elapsedTime) velocity.x = maxSpeed * elapsedTime * sign(velocity.x);
+                if (fabs(velocity.y) > maxSpeed * elapsedTime) velocity.y = maxSpeed * elapsedTime * sign(velocity.y);
 
                 if (fabs(velocity.x) < 0.001) velocity.x = 0;
                 if (fabs(velocity.y) < 0.001) velocity.y = 0;
