@@ -69,7 +69,7 @@ namespace Violet{
                         sf::Vector2f dragAppl =
                                 -Util::sign(velocity.x) *
                                 drag *
-                                (Player::SCALE * elapsedTime);
+                                (SCALE * elapsedTime);
                         if (Util::sign(velocity.x) == Util::sign((velocity + dragAppl).x)) velocity += dragAppl;
                         else velocity.x = 0;
                 }
