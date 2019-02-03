@@ -54,7 +54,7 @@ namespace Violet{
                         //physics
                         sf::Vector2f acceleration =
                                 (moveDir * speed + gravity) *
-                                (Player::SCALE * elapsedTime);
+                                (SCALE * elapsedTime);
                         velocity += acceleration;
 
                         applyDrag(elapsedTime);
