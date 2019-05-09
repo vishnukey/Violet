@@ -22,6 +22,7 @@ namespace Violet{
                  * # is wall
                  * o is coin
                  */
+                // TODO: parse this into a sane structure that maps Index => Tile Object
                 const std::array<std::string, TILES_PER_LINE> map = {
                         "#########################",
                         "#.......................#",
