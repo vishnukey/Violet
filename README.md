@@ -9,6 +9,7 @@ Build system uses CMake and brings in SFML as a submodule. Pull with `git clone 
 ## TODO
 - [ ] Move map from `std:array<std::string>` to a map of `Tile`s, for sane indexing an reasonable collisions
 - [ ] Collisions detection with coins and other collidables
-- [ ] Enemies 
+- [ ] Enemies
+- [ ] Decouple engine logic from game logic 
 - [ ] ???
 - [ ] profit
